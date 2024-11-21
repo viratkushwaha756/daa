@@ -1,5 +1,5 @@
 import heapq
-N = 4 
+
 class Node:
     def __init__(self, student, club, assigned, parent):
         self.parent = parent

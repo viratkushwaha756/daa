@@ -1,77 +1,61 @@
-N = 4
+import heapq
 
 class Node:
-    def __init__(self, student, club, assigned, parent):
-        self.parent = parent
-        self.studentID = student
-        self.clubID = club
+    def __init__(self, student, club, assigned, cost, parent=None):
+        self.student = student
+        self.club = club
         self.assigned = assigned[:]
         if club != -1:
-            self.assigned[club] = True
-        self.pathCost = 0
-        self.cost = 0
+         self.assigned[club] = True
+        self.cost = cost
+        self.parent = parent
 
-class CustomHeap:
+class PriorityQueue:
     def __init__(self):
-        self.heap = []
+        self.queue = []
 
     def push(self, node):
-        self.heap.append(node)
-        self.heap.sort(key=lambda x: x.cost)  # Sort based on cost to maintain min-heap behavior
+        heapq.heappush(self.queue, (node.cost, node))
 
     def pop(self):
-        if not self.heap:
-            return None
-        return self.heap.pop(0)  # Pop the first element (minimum cost)
+        return heapq.heappop(self.queue)[1] if self.queue else None
 
-def calculate_cost(cost_matrix, student, assigned):
+def calculate_cost(matrix, student, assigned):
     cost = 0
-    available = [True] * N
-    for i in range(student + 1, N):
-        min_val, min_index = float('inf'), -1
-        for j in range(N):
-            if not assigned[j] and available[j] and cost_matrix[i][j] < min_val:
-                min_index = j
-                min_val = cost_matrix[i][j]
-        if min_index != -1:
-            cost += min_val
-            available[min_index] = False
+    for i in range(student + 1, len(matrix)):
+        cost += min(matrix[i][j] for j in range(len(matrix)) if not assigned[j])
     return cost
 
 def print_assignments(node):
-    if node.parent is None:
-        return
-    print_assignments(node.parent)
-    print(f"Assign Student {chr(node.studentID + ord('A'))} to Club {node.clubID + 1}")
+    if node.parent:
+        print_assignments(node.parent)
+        print(f"Student {chr(node.student + ord('A'))} → Club {node.club + 1}")
 
-def find_min_cost(cost_matrix):
-    pq = CustomHeap()
-    root = Node(-1, -1, [False] * N, None)
+def find_min_cost(matrix):
+    n = len(matrix)
+    root = Node(-1, -1, [False] * n, 0)
+    pq = PriorityQueue()
     pq.push(root)
 
-    while pq.heap:
-        min_node = pq.pop()
-        student = min_node.studentID + 1
-        if student == N:
-            print_assignments(min_node)
-            return min_node.cost
+    while pq.queue:
+        node = pq.pop()
+        student = node.student + 1
+        if student == n:
+            print_assignments(node)
+            return node.cost
 
-        for club in range(N):
-            if not min_node.assigned[club]:
-                child = Node(student, club, min_node.assigned, min_node)
-                child.pathCost = min_node.pathCost + cost_matrix[student][club]
-                child.cost = child.pathCost + calculate_cost(cost_matrix, student, child.assigned)
-                pq.push(child)
+        for club in range(n):
+            if not node.assigned[club]:
+                path_cost = node.cost + matrix[student][club]
+                estimated_cost = path_cost + calculate_cost(matrix, student, node.assigned)
+                pq.push(Node(student, club, node.assigned, estimated_cost, node))
 
 def get_cost_matrix():
-    global N
-    N = int(input("Enter the number of students/clubs: "))
-    return [list(map(int, input(f"Row {i + 1}: ").split())) for i in range(N)]
+    n = int(input("Enter number of students/clubs: "))
+    print("Enter cost matrix:")
+    return [list(map(int, input().split())) for _ in range(n)]
 
 if __name__ == "__main__":
     cost_matrix = get_cost_matrix()
     optimal_cost = find_min_cost(cost_matrix)
-    if optimal_cost is not None:
-        print(f"\nOptimal Cost is {optimal_cost}")
-    else:
-        print("\nNo optimal solution found.")
+    print(f"\nOptimal Cost: {optimal_cost}")

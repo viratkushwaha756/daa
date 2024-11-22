@@ -7,19 +7,23 @@ class Node:
         self.clubID = club
         self.assigned = assigned[:]
         if club != -1:
-         self.assigned[club] = True
+            self.assigned[club] = True
         self.pathCost = 0
         self.cost = 0
+
+    
+    def __lt__(self, other):
+        return self.cost < other.cost
 
 class CustomHeap:
     def __init__(self):
         self.heap = []
 
     def push(self, node):
-        heapq.heappush(self.heap, (node.cost, node))
+        heapq.heappush(self.heap, node)
 
     def pop(self):
-        return heapq.heappop(self.heap)[1] if self.heap else None
+        return heapq.heappop(self.heap) if self.heap else None
 
 def calculate_cost(cost_matrix, student, assigned):
     cost = 0

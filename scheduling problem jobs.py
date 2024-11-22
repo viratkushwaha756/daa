@@ -11,15 +11,18 @@ def job_scheduling(jobs, n):
     
     job_sequence = [None] * n
 
+    total_profit=0
+
     for job in jobs:
         for j in range(min(n, job.deadline) - 1, -1, -1):
             
             if not result[j]:
                 result[j] = True  
-                job_sequence[j] = job.job_id  
+                job_sequence[j] = job.job_id
+                total_profit += job.profit  
                 break
 
-    return [job for job in job_sequence if job is not None]
+    return [job for job in job_sequence if job is not None],total_profit
 
 if __name__ == "__main__":  
     num_jobs = int(input("Enter the number of jobs: "))
@@ -32,5 +35,6 @@ if __name__ == "__main__":
         jobs.append(Job(job_id, profit, deadline))
 
     max_slots = max(job.deadline for job in jobs)
-    optimal_schedule = job_scheduling(jobs, max_slots)
+    optimal_schedule , total_profit = job_scheduling(jobs, max_slots)
     print("Optimal Job Schedule to Maximize Profit:", optimal_schedule)
+    print("Total Profit from Scheduled Jobs:", total_profit)
